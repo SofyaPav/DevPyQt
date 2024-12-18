@@ -2,7 +2,7 @@
 Пример работы с классом QTimer
 """
 
-import psutil
+import psutil  # pip install psutil
 from PySide6 import QtWidgets, QtCore
 
 

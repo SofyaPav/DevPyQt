@@ -8,7 +8,7 @@ from PySide6 import QtCore, QtWidgets
 
 
 class Worker(QtCore.QThread):
-    progress = QtCore.Signal(int)
+    progress = QtCore.Signal(int)  # что значит QtCore.Signal(int)
 
     def run(self) -> None:
         """
@@ -19,7 +19,7 @@ class Worker(QtCore.QThread):
 
         for i in range(5):
             time.sleep(1)
-            self.progress.emit(i + 1)
+            self.progress.emit(i + 1)  # что значит emit(i + 1)
 
 
 class Window(QtWidgets.QWidget):
