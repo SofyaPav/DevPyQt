@@ -4,7 +4,7 @@
 
 import time
 
-import psutil
+import psutil  # pip install psutil
 from PySide6 import QtCore
 
 
@@ -27,7 +27,8 @@ class SystemInfo(QtCore.QThread):
 
 
 class WeatherHandler(QtCore.QThread):
-    # TODO Пропишите сигналы, которые считаете нужными
+    weatherDataReceived = QtCore.Signal(dict)  # Сигнал для передачи данных о погоде# TODO Пропишите сигналы, которые считаете нужными
+    weatherErrorOccurred = QtCore.Signal(str)  # Сигнал для передачи ошибок
 
     def __init__(self, lat, lon, parent=None):
         super().__init__(parent)

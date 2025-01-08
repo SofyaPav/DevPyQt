@@ -18,13 +18,20 @@
    в него соответствующие значения
 """
 
-from PySide6 import QtWidgets
+'''               
+                Заготовка
 
+from PySide6 import QtWidgets, QtCore, QtGui
+from ui.d_eventfilter_settings_form import Ui_Form
 
 class Window(QtWidgets.QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.ui = Ui_Form()
+        self.ui.setupUi(self)
+
 
 
 if __name__ == "__main__":
@@ -34,3 +41,6 @@ if __name__ == "__main__":
     window.show()
 
     app.exec()
+'''
+
+

@@ -1,3 +1,6 @@
+# pip install -r /path/to/requirements.txt
+# pip install -r requirements.txt
+
 
 """
 Файл для повторения темы QThread
@@ -14,8 +17,7 @@
 
 Опционально поработать с валидацией url
 """
-# pip install -r /path/to/requirements.txt
-# pip install -r requirements.txt
+
 
 from PySide6 import QtWidgets, QtCore
 import requests  # pip install requests
