@@ -1,8 +1,3 @@
-"""
-Виджет для работы с потоком SystemInfo
-"""
-
-import sys
 from PySide6 import QtWidgets
 from a_threads import SystemInfo
 
@@ -13,43 +8,33 @@ class SystemInfoWidget(QtWidgets.QWidget):
 
         self.initUi()
         self.initThreads()
-        self.initSignals()
 
-    def initUi(self) -> None:
-        self.delayInput = QtWidgets.QSpinBox()  # Поле для ввода времени задержки
-        self.delayInput.setRange(1, 10)
-        self.delayInput.setValue(1)
-
-        self.cpuLabel = QtWidgets.QLabel("CPU: 0%")  # Поле для вывода информации о CPU
-        self.ramLabel = QtWidgets.QLabel("RAM: 0%")  # Поле для вывода информации о RAM
+    def initUi(self):
+        self.label_cpu = QtWidgets.QLabel("CPU: 0%")
+        self.label_ram = QtWidgets.QLabel("RAM: 0%")
+        self.input_delay = QtWidgets.QSpinBox()
+        self.input_delay.setRange(1, 10)
+        self.input_delay.setValue(1)
 
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(QtWidgets.QLabel("Задержка (сек):"))
-        layout.addWidget(self.delayInput)
-        layout.addWidget(self.cpuLabel)
-        layout.addWidget(self.ramLabel)
+        layout.addWidget(QtWidgets.QLabel("Время задержки:"))
+        layout.addWidget(self.input_delay)
+        layout.addWidget(self.label_cpu)
+        layout.addWidget(self.label_ram)
         self.setLayout(layout)
 
-    def initThreads(self) -> None:
-        self.systemInfoThread = SystemInfo()  # Создаем поток
-        self.systemInfoThread.delay = self.delayInput.value()
-        self.systemInfoThread.start()
+    def initThreads(self):
+        self.system_thread = SystemInfo()
+        self.system_thread.systemInfoReceived.connect(self.updateInfo)
+        self.system_thread.start()
 
-    def initSignals(self) -> None:
-        self.delayInput.valueChanged.connect(self.updateDelay)  # Обновляем задержку
-        self.systemInfoThread.systemInfoReceived.connect(self.updateSystemInfo)
+        self.input_delay.valueChanged.connect(self.setDelay)
+        self.setDelay(self.input_delay.value())
 
-    def updateDelay(self, value: int) -> None:
-        self.systemInfoThread.delay = value  # Обновляем задержку в потоке
+    def setDelay(self, value):
+        self.system_thread.delay = value
 
-    def updateSystemInfo(self, data: list) -> None:
+    def updateInfo(self, data):
         cpu, ram = data
-        self.cpuLabel.setText(f"CPU: {cpu}%")
-        self.ramLabel.setText(f"RAM: {ram}%")
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = SystemInfoWidget()
-    window.show()
-    sys.exit(app.exec())
+        self.label_cpu.setText(f"CPU: {cpu}%")
+        self.label_ram.setText(f"RAM: {ram}%")

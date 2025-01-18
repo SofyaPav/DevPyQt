@@ -1,8 +1,3 @@
-"""
-Виджет для работы с потоком WeatherHandler
-"""
-
-import sys
 from PySide6 import QtWidgets
 from a_threads import WeatherHandler
 
@@ -13,75 +8,66 @@ class WeatherApiWidget(QtWidgets.QWidget):
 
         self.initUi()
         self.initThreads()
-        self.initSignals()
 
-    def initUi(self) -> None:
-        self.latInput = QtWidgets.QLineEdit()  # Поле для ввода широты
-        self.latInput.setPlaceholderText("Широта")
+    def initUi(self):
+        self.input_lat = QtWidgets.QLineEdit()
+        self.input_lat.setPlaceholderText("Введите широту")
+        self.input_lon = QtWidgets.QLineEdit()
+        self.input_lon.setPlaceholderText("Введите долготу")
+        self.input_delay = QtWidgets.QSpinBox()
+        self.input_delay.setRange(1, 60)
+        self.input_delay.setValue(10)
 
-        self.lonInput = QtWidgets.QLineEdit()  # Поле для ввода долготы
-        self.lonInput.setPlaceholderText("Долгота")
-
-        self.delayInput = QtWidgets.QSpinBox()  # Поле для ввода времени задержки
-        self.delayInput.setRange(1, 60)
-        self.delayInput.setValue(10)
-
-        self.weatherOutput = QtWidgets.QPlainTextEdit()  # Поле для вывода погоды
-        self.weatherOutput.setReadOnly(True)
-
-        self.startStopButton = QtWidgets.QPushButton("Запустить")  # Кнопка запуска/остановки
+        self.button_toggle = QtWidgets.QPushButton("Запустить")
+        self.text_weather = QtWidgets.QPlainTextEdit()
+        self.text_weather.setReadOnly(True)
 
         layout = QtWidgets.QVBoxLayout()
-        layout.addWidget(self.latInput)
-        layout.addWidget(self.lonInput)
-        layout.addWidget(QtWidgets.QLabel("Задержка (сек):"))
-        layout.addWidget(self.delayInput)
-        layout.addWidget(self.weatherOutput)
-        layout.addWidget(self.startStopButton)
+        layout.addWidget(QtWidgets.QLabel("Широта:"))
+        layout.addWidget(self.input_lat)
+        layout.addWidget(QtWidgets.QLabel("Долгота:"))
+        layout.addWidget(self.input_lon)
+        layout.addWidget(QtWidgets.QLabel("Время задержки:"))
+        layout.addWidget(self.input_delay)
+        layout.addWidget(self.button_toggle)
+        layout.addWidget(self.text_weather)
         self.setLayout(layout)
 
-    def initThreads(self) -> None:
-        self.weatherThread = None
+        self.button_toggle.clicked.connect(self.toggleThread)
 
-    def initSignals(self) -> None:
-        self.startStopButton.clicked.connect(self.toggleWeatherThread)
+    def initThreads(self):
+        self.weather_thread = None
 
-    def toggleWeatherThread(self) -> None:
-        if self.weatherThread is None:  # Если поток еще не запущен
-            lat = self.latInput.text()
-            lon = self.lonInput.text()
-            if not lat or not lon:
-                self.weatherOutput.setPlainText("Введите координаты!")
+    def toggleThread(self):
+        if self.weather_thread is None:
+            try:
+                lat = float(self.input_lat.text())
+                lon = float(self.input_lon.text())
+            except ValueError:
+                self.text_weather.setPlainText("Введите корректные координаты!")
                 return
 
-            self.weatherThread = WeatherHandler(lat, lon)
-            self.weatherThread.weatherDataReceived.connect(self.displayWeatherData)
-            self.weatherThread.weatherErrorOccurred.connect(self.displayError)
-            self.weatherThread.start()
+            self.weather_thread = WeatherHandler(lat, lon)
+            self.weather_thread.weatherDataReceived.connect(self.updateWeather)
+            self.weather_thread.weatherErrorOccurred.connect(self.displayError)
+            self.weather_thread.setDelay(self.input_delay.value())
+            self.weather_thread.startUpdating()
 
-            self.latInput.setEnabled(False)
-            self.lonInput.setEnabled(False)
-            self.delayInput.setEnabled(False)
-            self.startStopButton.setText("Остановить")
-        else:  # Останавливаем поток
-            self.weatherThread.__status = False
-            self.weatherThread = None
+            self.input_lat.setEnabled(False)
+            self.input_lon.setEnabled(False)
+            self.input_delay.setEnabled(False)
+            self.button_toggle.setText("Остановить")
+        else:
+            self.weather_thread.stopUpdating()
+            self.weather_thread = None
 
-            self.latInput.setEnabled(True)
-            self.lonInput.setEnabled(True)
-            self.delayInput.setEnabled(True)
-            self.startStopButton.setText("Запустить")
+            self.input_lat.setEnabled(True)
+            self.input_lon.setEnabled(True)
+            self.input_delay.setEnabled(True)
+            self.button_toggle.setText("Запустить")
 
-    def displayWeatherData(self, data: dict) -> None:
-        self.weatherOutput.setPlainText(str(data))
+    def updateWeather(self, data):
+        self.text_weather.setPlainText(str(data))
 
-    def displayError(self, error: str) -> None:
-        self.weatherOutput.setPlainText(f"Ошибка: {error}")
-
-
-if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
-    window = WeatherApiWidget()
-    window.show()
-    sys.exit(app.exec())
-
+    def displayError(self, error):
+        self.text_weather.setPlainText(f"Ошибка: {error}")
