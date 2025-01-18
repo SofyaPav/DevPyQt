@@ -3,31 +3,30 @@
 """
 
 import time
-
 import psutil  # pip install psutil
 from PySide6 import QtCore
 
 
 class SystemInfo(QtCore.QThread):
-    systemInfoReceived = ...  # TODO Создайте экземпляр класса Signal и передайте ему в конструктор тип данных передаваемого значения (в текущем случае list)
+    systemInfoReceived = QtCore.Signal(list)  # Сигнал для передачи данных [CPU, RAM]
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        ...  # TODO создайте атрибут класса self.delay = None, для управлением задержкой получения данных
+        self.delay = None  # Атрибут для управления задержкой получения данных
 
-    def run(self) -> None:  # TODO переопределить метод run
-        if self.delay is None:  # TODO Если задержка не передана в поток перед его запуском
-            self.delay = ...  # TODO то устанавливайте значение 1
+    def run(self) -> None:
+        if self.delay is None:  # Если задержка не передана
+            self.delay = 1  # Устанавливаем значение по умолчанию
 
-        while True:  # TODO Запустите бесконечный цикл получения информации о системе
-            cpu_value = psutil  # TODO с помощью вызова функции cpu_percent() в пакете psutil получите загрузку CPU
-            ram_value = ...  # TODO с помощью вызова функции virtual_memory().percent в пакете psutil получите загрузку RAM
-            self.systemInfoReceived  # TODO с помощью метода .emit передайте в виде списка данные о загрузке CPU и RAM
-            time  # TODO с помощью функции .sleep() приостановите выполнение цикла на время self.delay
+        while True:  # Бесконечный цикл получения информации
+            cpu_value = psutil.cpu_percent()  # Получаем загрузку CPU
+            ram_value = psutil.virtual_memory().percent  # Получаем загрузку RAM
+            self.systemInfoReceived.emit([cpu_value, ram_value])  # Передаем данные через сигнал
+            time.sleep(self.delay)  # Задержка
 
 
 class WeatherHandler(QtCore.QThread):
-    weatherDataReceived = QtCore.Signal(dict)  # Сигнал для передачи данных о погоде# TODO Пропишите сигналы, которые считаете нужными
+    weatherDataReceived = QtCore.Signal(dict)  # Сигнал для передачи данных о погоде
     weatherErrorOccurred = QtCore.Signal(str)  # Сигнал для передачи ошибок
 
     def __init__(self, lat, lon, parent=None):
@@ -35,26 +34,21 @@ class WeatherHandler(QtCore.QThread):
 
         self.__api_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current_weather=true"
         self.__delay = 10
-        self.__status = None
+        self.__status = True  # Устанавливаем статус потока
 
     def setDelay(self, delay) -> None:
         """
         Метод для установки времени задержки обновления сайта
-
-        :param delay: время задержки обновления информации о доступности сайта
-        :return: None
         """
-
         self.__delay = delay
 
     def run(self) -> None:
-        # TODO настройте метод для корректной работы
-
         while self.__status:
-            # TODO Примерный код ниже
-            """
-            response = requests.get(self.__api_url)
-            data = response.json()
-            ваш_сигнал.emit(data)
-            sleep(delay)
-            """
+            try:
+                response = requests.get(self.__api_url)
+                response.raise_for_status()  # Проверяем успешность запроса
+                data = response.json()
+                self.weatherDataReceived.emit(data)  # Передаем данные через сигнал
+            except Exception as e:
+                self.weatherErrorOccurred.emit(str(e))  # Передаем ошибку
+            time.sleep(self.__delay)  # Задержка

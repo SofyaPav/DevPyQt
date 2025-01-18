@@ -1,3 +1,4 @@
+
 """
 Использование потока через класс наследованный от QThread
 """
@@ -9,7 +10,6 @@ from PySide6 import QtCore, QtWidgets
 
 class Worker(QtCore.QThread):
     progress = QtCore.Signal(int)
-    # progress - локальная переменная, значение - экземпляр класса Signal мой сигнал
 
     def run(self) -> None:
         """
@@ -21,12 +21,12 @@ class Worker(QtCore.QThread):
         for i in range(5):
             time.sleep(1)
             self.progress.emit(i + 1)
-            # emit-посылать
+        self.finished.emit()
 
 
 class Window(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        super().__init__(parent)
+        super(Window, self).__init__(parent)
 
         self.initThreads()
         self.initUi()
@@ -73,8 +73,8 @@ class Window(QtWidgets.QWidget):
             lambda: self.plainTextEdit.appendPlainText(f"{time.ctime()}: push clicked")
         )
 
-        self.thread.started.connect(lambda: print("Thread started"))
         self.thread.progress.connect(self.reportProgress)
+        self.thread.finished.connect(self.thread.deleteLater)
         self.thread.finished.connect(lambda: self.pushButton.setEnabled(True))
 
 

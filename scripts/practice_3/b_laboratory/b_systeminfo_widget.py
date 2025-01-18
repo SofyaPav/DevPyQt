@@ -1,13 +1,55 @@
 """
-Реализовать виджет, который будет работать с потоком SystemInfo из модуля a_threads
-
-Создавать форму можно как в ручную, так и с помощью программы Designer
-
-Форма должна содержать:
-1. поле для ввода времени задержки
-2. поле для вывода информации о загрузке CPU
-3. поле для вывода информации о загрузке RAM
-4. поток необходимо запускать сразу при старте приложения
-5. установку времени задержки сделать "горячей", т.е. поток должен сразу
-реагировать на изменение времени задержки
+Виджет для работы с потоком SystemInfo
 """
+
+import sys
+from PySide6 import QtWidgets
+from a_threads import SystemInfo
+
+
+class SystemInfoWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        self.initUi()
+        self.initThreads()
+        self.initSignals()
+
+    def initUi(self) -> None:
+        self.delayInput = QtWidgets.QSpinBox()  # Поле для ввода времени задержки
+        self.delayInput.setRange(1, 10)
+        self.delayInput.setValue(1)
+
+        self.cpuLabel = QtWidgets.QLabel("CPU: 0%")  # Поле для вывода информации о CPU
+        self.ramLabel = QtWidgets.QLabel("RAM: 0%")  # Поле для вывода информации о RAM
+
+        layout = QtWidgets.QVBoxLayout()
+        layout.addWidget(QtWidgets.QLabel("Задержка (сек):"))
+        layout.addWidget(self.delayInput)
+        layout.addWidget(self.cpuLabel)
+        layout.addWidget(self.ramLabel)
+        self.setLayout(layout)
+
+    def initThreads(self) -> None:
+        self.systemInfoThread = SystemInfo()  # Создаем поток
+        self.systemInfoThread.delay = self.delayInput.value()
+        self.systemInfoThread.start()
+
+    def initSignals(self) -> None:
+        self.delayInput.valueChanged.connect(self.updateDelay)  # Обновляем задержку
+        self.systemInfoThread.systemInfoReceived.connect(self.updateSystemInfo)
+
+    def updateDelay(self, value: int) -> None:
+        self.systemInfoThread.delay = value  # Обновляем задержку в потоке
+
+    def updateSystemInfo(self, data: list) -> None:
+        cpu, ram = data
+        self.cpuLabel.setText(f"CPU: {cpu}%")
+        self.ramLabel.setText(f"RAM: {ram}%")
+
+
+if __name__ == "__main__":
+    app = QtWidgets.QApplication(sys.argv)
+    window = SystemInfoWidget()
+    window.show()
+    sys.exit(app.exec())
