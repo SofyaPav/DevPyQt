@@ -6,7 +6,7 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import QThread, Signal, QTimer
 
-# 🔹 Фоновый поток для обновления данных
+# Фоновый поток для обновления данных
 class SystemMonitor(QThread):
     data_updated = Signal(dict)  # Сигнал для передачи данных
 
@@ -61,7 +61,7 @@ class SystemMonitor(QThread):
         self.quit()
         self.wait()
 
-# 🔹 Главное окно
+# Главное окно
 class TaskManager(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -74,11 +74,11 @@ class TaskManager(QMainWindow):
 
         self.layout = QVBoxLayout()
 
-        # 🔹 Вкладки
+        # Вкладки
         self.tabs = QTabWidget()
         self.layout.addWidget(self.tabs)
 
-        # 1️⃣ Вкладка: Общие сведения
+        # 1 Вкладка: Общие сведения
         self.sys_info_tab = QWidget()
         self.sys_info_layout = QVBoxLayout()
         self.cpu_label = QLabel("CPU: —")
@@ -99,7 +99,7 @@ class TaskManager(QMainWindow):
         self.sys_info_tab.setLayout(self.sys_info_layout)
         self.tabs.addTab(self.sys_info_tab, "Общие сведения")
 
-        # 2️⃣ Вкладка: Процессы
+        # 2Вкладка: Процессы
         self.process_tab = QWidget()
         self.process_layout = QVBoxLayout()
         self.process_table = QTableWidget()
@@ -109,7 +109,7 @@ class TaskManager(QMainWindow):
         self.process_tab.setLayout(self.process_layout)
         self.tabs.addTab(self.process_tab, "Процессы")
 
-        # 3️⃣ Вкладка: Службы
+        # 3Вкладка: Службы
         self.services_tab = QWidget()
         self.services_layout = QVBoxLayout()
         self.services_table = QTableWidget()
@@ -119,7 +119,7 @@ class TaskManager(QMainWindow):
         self.services_tab.setLayout(self.services_layout)
         self.tabs.addTab(self.services_tab, "Службы")
 
-        # 4️⃣ Вкладка: Запланированные задачи
+        # 4Вкладка: Запланированные задачи
         self.tasks_tab = QWidget()
         self.tasks_layout = QVBoxLayout()
         self.tasks_table = QTableWidget()
@@ -131,7 +131,7 @@ class TaskManager(QMainWindow):
 
         self.central_widget.setLayout(self.layout)
 
-        # 🔹 Запуск фонового потока
+        # Запуск фонового потока
         self.monitor_thread = SystemMonitor()
         self.monitor_thread.data_updated.connect(self.update_ui)
         self.monitor_thread.start()
